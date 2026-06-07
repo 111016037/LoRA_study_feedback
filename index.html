@@ -199,11 +199,9 @@
         <span class="math">h = W₀ x + ΔW x = W₀ x + (α / r) B A x</span>
     </div>
 
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h3>3.計算與儲存效率分析</h3>
     <div class="image-placeholder"><img src="4.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
     <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>。這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
-
     <hr>
 
     <h2>三、演算法的發展與應用</h2>
