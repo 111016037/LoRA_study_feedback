@@ -160,7 +160,7 @@
         <span><strong>資四甲111016037 陳柏曄</strong></span>
     </div>
 
-    <div class="image-placeholder"><img src="1.webp" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
+    <div><img src="1.webp" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <h2>一、LoRA演算法簡介</h2>
     <div class="image-placeholder"><img src="2.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <p>隨著大型語言模型(LLM)的快速發展，如何有效微調這些擁有數十億參數的模型，成為目前人工智慧領域的重要課題。然而，全參數微調對計算資源與記憶體的要求極高，這對於一般研究者或硬體設備有限的團隊來說是極大的挑戰。<strong>低階適應(Low-Rank Adaptation,簡稱LoRA)</strong>正是微軟研究團隊為了克服此瓶頸而提出的一種參數高效微調(PEFT)技術。</p>
@@ -172,7 +172,7 @@
 
     
     <h3>1.核心數學原理</h3>
-    <div class="image-placeholder"><img src="3.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
+    <div><img src="3.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <p>在傳統的微調過程中，模型透過更新預訓練權重矩陣<span class="math">W₀</span>(其維度為<span class="math">d×k</span>)來適應新任務，更新後的權重可以表示為<span class="math">W=W₀+ΔW</span>。</p>
     <p>LoRA的核心假設在於：模型在適應新任務時，權重更新量(<span class="math">ΔW</span>)其實具有較低的「內在階數」(Intrinsic Rank)。這意味著我們不需要直接優化一個高維度的完整矩陣，而是可以透過數學方法將其簡化。因此，LoRA將大矩陣<span class="math">ΔW</span>拆解為兩個低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積：</p>
 
@@ -200,13 +200,13 @@
     </div>
 
     <h3>3.計算與儲存效率分析</h3>
-    <div class="image-placeholder"><img src="4.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
+    <div><img src="4.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>。這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
     <hr>
 
     <h2>三、演算法的發展與應用</h2>
 
-    <div class="image-placeholder"><img src="5.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
+    <div><img src="5.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <h3>1.技術演進與變體</h3>
     <p>自從原版LoRA架構推出並獲得成功後，開源社群與研究團隊也陸續開發出許多延伸技術：</p>
     <ul>
@@ -217,7 +217,7 @@
     </ul>
 
     <h3>2.實際應用領域</h3>
-    <div class="image-placeholder"><img src="6.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
+    <div><img src="6.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <ul>
         <li><strong>自然語言處理(NLP)</strong>：廣泛應用於將開源基礎模型(如LLaMA或Mistral)快速適應於醫療問答、法律條文分析或程式碼生成等垂直領域。</li>
         <li><strong>電腦視覺(CV)</strong>：在Stable Diffusion等文本生成圖像的模型生態系中成為核心。使用者不需重新下載數吉位元組的完整模型，只需下載大小僅數兆位元組的輕量化LoRA檔案，即可引導模型生成特定的角色特徵或特定的藝術風格。</li>
@@ -225,13 +225,101 @@
 
     <hr>
     <h2>四、AI輔助學習紀錄</h2>
-    <p>階段與指導問題,AI 回答核心技術重點,這些回答如何幫助我理解 LoRA
-1. 宏觀架構與概念整合（如何在一張圖理解 LoRA 全景？）,• 核心公式：h=W0​x+ΔWx=W0​x+rα​⋅B⋅A⋅x• 三維知識網：將數學原理、技術演進（QLoRA / AdaLoRA / DoRA）與下游應用（NLP / CV）串聯。,建立由上而下的宏觀視野：避開零碎的論文片段，一眼看懂 LoRA 如何在「凍結大模型」的同時，透過旁路低階矩陣達到「零推論延遲」的核心價值。
-2. 核心數學與矩陣分解（LoRA 的參數如何被精簡？）,"• 矩陣低階分解：將高維度更新量 ΔW 分解為兩個相乘的低階矩陣 A 與 B（階數 r≪d,k）。• 初始化策略：矩陣 A 採隨機高斯初始化，矩陣 B 採全零初始化，確保訓練初期 ΔW=0。",掌握 PEFT（參數高效微調）的底層邏輯：理解為何 LoRA 可以大幅降低顯存需求（不需儲存原始模型的梯度與優化器狀態），並明白初始化策略如何維持大模型既有的基礎能力。
-3. 多任務部署與資源效率（工業界如何利用 LoRA 節省成本？）,• 共享基礎模型：一個體積巨大的凍結基礎模型（佔用 99% 空間），可同時掛載多個僅有幾 MB 的任務適配器（Adapters）。• 即時動態切換：針對醫療、法律或代碼生成等不同下游任務，只需在記憶體中抽換輕量化適配器。,理解落地應用的商業價值：明白 LoRA 不僅是學術上的技巧，更解決了企業級部署時「為每個任務儲存完整大模型」的硬體痛點，實現高效多任務並行。
-4. 技術演進與改良生態（後續變體解決了原生 LoRA 的什麼問題？）,• QLoRA：引入 4-bit NF4 量化，讓大模型微調下放至消費級顯卡。• AdaLoRA：動態評分，將參數預算自適應分配給核心權重層。• DoRA：將權重拆解為「振幅」與「方向」，使學習軌跡逼近全參數微調。,追蹤前沿技術的迭代脈絡：看懂演算法的優化方向：從「極致壓縮硬體門檻（量化）」、「動態資源分派（結構最佳化）」到「縮小與全微調的效能差距（架構解耦）」。
-5. 領域落地與跨模態應用（LoRA 能做什麼實際應用？）,• NLP 領域：垂直領域知識注入（財報分析）、特定人設對話風格客製。• CV 領域：Stable Diffusion 的藝術畫風精準鎖定、特定角色與商用產品外觀訓練。,具體化演算法的實踐場景：理解低階矩陣如何捕捉「文風特徵」與「視覺特徵」，將抽象數學與當前生成式 AI（GenAI）的產業熱點相結合。</p>
-</div>
+    <div style="overflow-x: auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 8px; margin-bottom: 40px;">
+        <table style="width: 100%; border-collapse: collapse; background-color: #ffffff; text-align: left; font-size: 15px;">
+            <thead>
+                <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                    <th style="padding: 16px; font-weight: bold; color: #334155; width: 25%;">階段與指導問題</th>
+                    <th style="padding: 16px; font-weight: bold; color: #334155; width: 45%;">AI 回答核心技術重點</th>
+                    <th style="padding: 16px; font-weight: bold; color: #334155; width: 30%;">這些回答如何幫我理解 LoRA</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #e2e8f0; vertical-align: top;">
+                    <td style="padding: 16px; background-color: #f8fafc;">
+                        <strong style="color: #0f172a; display: block; margin-bottom: 4px;">1. 宏觀架構與概念整合</strong>
+                        <span style="font-size: 13px; color: #64748b;">（如何在一張圖理解 LoRA 全景？）</span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            <li style="margin-bottom: 8px;"><strong>核心公式</strong>：$h = W_0x + \Delta Wx = W_0x + \frac{\alpha}{r} \cdot B \cdot A \cdot x$</li>
+                            <li><strong>三維知識網</strong>：將數學原理、技術演進（QLoRA / AdaLoRA / DoRA）與下游應用（NLP / CV）串聯。</li>
+                        </ul>
+                    </td>
+                    <td style="padding: 16px; color: #334155;">
+                        <strong style="color: #2563eb;">建立由上而下的宏觀視野</strong>：<br>
+                        避開零碎的論文片段，一眼看懂 LoRA 如何在「凍結大模型」的同時，透過旁路低階矩陣達到「零推論延遲」的核心價值。
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; vertical-align: top;">
+                    <td style="padding: 16px; background-color: #f8fafc;">
+                        <strong style="color: #0f172a; display: block; margin-bottom: 4px;">2. 核心數學與矩陣分解</strong>
+                        <span style="font-size: 13px; color: #64748b;">（LoRA 的參數如何被精簡？）</span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            <li style="margin-bottom: 8px;"><strong>矩陣低階分解</strong>：將高維度更新量 $\Delta W$ 分解為兩個相乘的低階矩陣 $A$ 與 $B$（階數 $r \ll d, k$）。</li>
+                            <li><strong>初始化策略</strong>：矩陣 $A$ 採隨機高斯初始化，矩陣 $B$ 採全零初始化，確保訓練初期 $\Delta W = 0$。</li>
+                        </ul>
+                    </td>
+                    <td style="padding: 16px; color: #334155;">
+                        <strong style="color: #2563eb;">掌握 PEFT 的底層邏輯</strong>：<br>
+                        理解為何 LoRA 可以大幅降低顯存需求（不需儲存原始模型的梯度與優化器狀態），並明白初始化策略如何維持大模型既有的基礎能力。
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; vertical-align: top;">
+                    <td style="padding: 16px; background-color: #f8fafc;">
+                        <strong style="color: #0f172a; display: block; margin-bottom: 4px;">3. 多任務部署與資源效率</strong>
+                        <span style="font-size: 13px; color: #64748b;">（工業界如何利用 LoRA 節省成本？）</span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            <li style="margin-bottom: 8px;"><strong>共享基礎模型</strong>：一個體積巨大的凍結基礎模型（佔用 99% 空間），可同時掛載多個僅有幾 MB 的任務適配器（Adapters）。</li>
+                            <li><strong>即時動態切換</strong>：針對醫療、法律或代碼生成等不同下游任務，只需在記憶體中抽換輕量化適配器。</li>
+                        </ul>
+                    </td>
+                    <td style="padding: 16px; color: #334155;">
+                        <strong style="color: #2563eb;">理解落地應用的商業價值</strong>：<br>
+                        明白 LoRA 不僅是學術上的技巧，更解決了企業級部署時「為每個任務儲存完整大模型」的硬體痛點，實現高效多任務並行。
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0; vertical-align: top;">
+                    <td style="padding: 16px; background-color: #f8fafc;">
+                        <strong style="color: #0f172a; display: block; margin-bottom: 4px;">4. 技術演進與改良生態</strong>
+                        <span style="font-size: 13px; color: #64748b;">（改良變體解決了原生 LoRA 的什麼問題？）</span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            <li style="margin-bottom: 6px;"><strong>QLoRA</strong>：引入 4-bit NF4 量化，讓大模型微調下放至消費級顯卡。</li>
+                            <li style="margin-bottom: 6px;"><strong>AdaLoRA</strong>：動態評分，將參數預算自適應分配給核心權重層。</li>
+                            <li><strong>DoRA</strong>：將權重拆解為「振幅」與「方向」，使學習軌跡逼近全參數微調。</li>
+                        </ul>
+                    </td>
+                    <td style="padding: 16px; color: #334155;">
+                        <strong style="color: #2563eb;">追蹤前沿技術的迭代脈絡</strong>：<br>
+                        看懂演算法的優化方向：從極致壓縮硬體門檻（量化）、動態資源分派（結構最佳化）到縮小與全微調的效能差距（架構解耦）。
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px solid #cbd5e1; vertical-align: top;">
+                    <td style="padding: 16px; background-color: #f8fafc;">
+                        <strong style="color: #0f172a; display: block; margin-bottom: 4px;">5. 領域落地與跨模態應用</strong>
+                        <span style="font-size: 13px; color: #64748b;">（LoRA 能做什麼實際應用？）</span>
+                    </td>
+                    <td style="padding: 16px;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            <li style="margin-bottom: 8px;"><strong>NLP 領域</strong>：垂直領域知識注入（財報分析）、特定人設對話風格客製。</li>
+                            <li><strong>CV 領域</strong>：Stable Diffusion 的藝術畫風精準鎖定、特定角色與商用產品外觀訓練。</li>
+                        </ul>
+                    </td>
+                    <td style="padding: 16px; color: #334155;">
+                        <strong style="color: #2563eb;">具體化演算法的實踐場景</strong>：<br>
+                        理解低階矩陣如何捕捉「文風特徵」與「視覺特徵」，將抽象數學與當前生成式 AI（GenAI）的產業熱點相結合。
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <hr>
     <h2>五、學習心得與結論</h2>
     <p>透過這次對LoRA演算法的研究，我體會到線性代數在深度學習優化中所扮演的關鍵角色，他的工程設計非常精妙，透過低階矩陣近似的數學技巧，將原本成本極高的全參數最佳化問題，轉化為輕量且高效的矩陣運算。</p>
     <p>這項技術不僅降低了個人研究者參與大型模型應用的硬體門檻，也為未來將AI模型部署於邊緣裝置或進行綠色運算時，提供了清晰且具啟發性的解決方向。</p>
