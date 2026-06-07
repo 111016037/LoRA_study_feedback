@@ -182,16 +182,16 @@
 
     <p>其中各矩陣的定義與特性如下：</p>
     <ul>
-        <li><span class="math">W₀</span>屬於<span class="math">R^(d×k)</span>，是完全凍結不參與訓練的原始預訓練權重矩陣。</li>
-        <li><span class="math">B</span>屬於<span class="math">R^(d×r)</span>，是其中一個可訓練的低階矩陣。</li>
-        <li><span class="math">A</span>屬於<span class="math">R^(r×k)</span>，是另一個可訓練的低階矩陣。</li>
-        <li>階數<span class="math">r</span>是一個遠小於<span class="math">min(d,k)</span>的超參數，可由使用者根據實際需求調整。</li>
+        <li><span class="math">W₀</span>屬於<span class="math">R^(d×k)</span>，是完全凍結不參與訓練的原始預訓練權重矩陣</li>
+        <li><span class="math">B</span>屬於<span class="math">R^(d×r)</span>，是其中一個可訓練的低階矩陣</li>
+        <li><span class="math">A</span>屬於<span class="math">R^(r×k)</span>，是另一個可訓練的低階矩陣</li>
+        <li>階數<span class="math">r</span>是一個遠小於<span class="math">min(d,k)</span>的超參數，可由使用者根據實際需求調整</li>
     </ul>
     <h3>2.初始化與前向傳播</h3>
     <ul>
-        <li><strong>矩陣A</strong>：在訓練開始前，採用高斯分佈進行隨機初始化。</li>
-        <li><strong>矩陣B</strong>：初始化為零。這項設計非常關鍵，因為它確保了在訓練初期的時刻，<span class="math">ΔW=0</span>，此時模型的初始輸出行為會與原始預訓練模型完全一致。</li>
-        <li><strong>縮放因子</strong>：輸出結果會固定乘以一個縮放係數<span class="math">α/r</span>(<span class="math">α</span>為常數超參數)。這個機制有助於在嘗試不同階數<span class="math">r</span>時，維持訓練過程的穩定度。</li>
+        <li><strong>矩陣A</strong>：在訓練開始前，採用高斯分佈進行隨機初始化</li>
+        <li><strong>矩陣B</strong>：初始化為零。這項設計非常關鍵，因為它確保了在訓練初期的時刻，<span class="math">ΔW=0</span>，此時模型的初始輸出行為會與原始預訓練模型完全一致</li>
+        <li><strong>縮放因子</strong>：輸出結果會固定乘以一個縮放係數<span class="math">α/r</span>(<span class="math">α</span>為常數超參數)。這個機制有助於在嘗試不同階數<span class="math">r</span>時，維持訓練過程的穩定度</li>
     </ul>
     <p>結合上述架構後，修改後的網路層在進行前向傳播時，其數學表達式如下：</p>
 
@@ -201,7 +201,7 @@
 
     <h3>3.計算與儲存效率分析</h3>
     <div><img src="4.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
-    <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>。這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
+    <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>，這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
     <hr>
 
     <h2>三、演算法的發展與應用</h2>
@@ -211,16 +211,16 @@
     <p>自從原版LoRA架構推出並獲得成功後，開源社群與研究團隊也陸續開發出許多延伸技術：</p>
     <ul>
         
-        <li><strong>QLoRA (Quantized LoRA)</strong>：將LoRA與4bit量化技術相結合，透過NormalFloat4資料格式壓縮基礎模型。這項技術讓開發者能用消費級顯示卡微調大型模型，大幅降低了硬體門檻。</li>
-        <li><strong>AdaLoRA (Adaptive LoRA)</strong>：根據重要性評分動態分配參數預算，並自動調整各層的階數<span class="math">r</span>，使參數利用率達到最大化。</li>
-        <li><strong>DoRA (Weight-Decomposed Low-Rank Adaptation)</strong>：將權重分解為振幅與方向兩個獨立組件，並專注於利用低階矩陣調整方向組件，使整體的學習行為更接近全參數微調。</li>
+        <li><strong>QLoRA (Quantized LoRA)</strong>：將LoRA與4bit量化技術相結合，透過NormalFloat4資料格式壓縮基礎模型。這項技術讓開發者能用消費級顯示卡微調大型模型，大幅降低了硬體門檻</li>
+        <li><strong>AdaLoRA (Adaptive LoRA)</strong>：根據重要性評分動態分配參數預算，並自動調整各層的階數<span class="math">r</span>，使參數利用率達到最大化</li>
+        <li><strong>DoRA (Weight-Decomposed Low-Rank Adaptation)</strong>：將權重分解為振幅與方向兩個獨立組件，並專注於利用低階矩陣調整方向組件，使整體的學習行為更接近全參數微調</li>
     </ul>
 
     <h3>2.實際應用領域</h3>
     <div><img src="6.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <ul>
-        <li><strong>自然語言處理(NLP)</strong>：廣泛應用於將開源基礎模型(如LLaMA或Mistral)快速適應於醫療問答、法律條文分析或程式碼生成等垂直領域。</li>
-        <li><strong>電腦視覺(CV)</strong>：在Stable Diffusion等文本生成圖像的模型生態系中成為核心。使用者不需重新下載數吉位元組的完整模型，只需下載大小僅數兆位元組的輕量化LoRA檔案，即可引導模型生成特定的角色特徵或特定的藝術風格。</li>
+        <li><strong>自然語言處理(NLP)</strong>：廣泛應用於將開源基礎模型(如LLaMA或Mistral)快速適應於醫療問答、法律條文分析或程式碼生成等垂直領域</li>
+        <li><strong>電腦視覺(CV)</strong>：在Stable Diffusion等文本生成圖像的模型生態系中成為核心。使用者不需重新下載數吉位元組的完整模型，只需下載大小僅數兆位元組的輕量化LoRA檔案，即可引導模型生成特定的角色特徵或特定的藝術風格</li>
     </ul>
 
     <hr>
@@ -271,7 +271,7 @@
                         </ul>
                     </td>
                     <td style="padding: 16px; color: #334155;">
-                        理解應用的價值，解決了任務部署時為每個任務儲存完整大模型的困難，實現高效多任務並行。
+                        理解應用的價值，解決了任務部署時為每個任務儲存完整大模型的困難，實現高效多任務並行
                     </td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0; vertical-align: top;">
@@ -280,13 +280,13 @@
                     </td>
                     <td style="padding: 16px;">
                         <ul style="margin: 0; padding-left: 20px;">
-                            <li style="margin-bottom: 6px;"><strong>QLoRA</strong>：引入 4-bit NF4 量化，讓大模型微調下放至消費級顯卡。</li>
-                            <li style="margin-bottom: 6px;"><strong>AdaLoRA</strong>：動態評分，將參數預算自適應分配給核心權重層。</li>
-                            <li><strong>DoRA</strong>：將權重拆解為「振幅」與「方向」，使學習軌跡逼近全參數微調。</li>
+                            <li style="margin-bottom: 6px;"><strong>QLoRA</strong>：引入 4-bit NF4 量化，讓大模型微調下放至消費級顯卡</li>
+                            <li style="margin-bottom: 6px;"><strong>AdaLoRA</strong>：動態評分，將參數預算自適應分配給核心權重層</li>
+                            <li><strong>DoRA</strong>：將權重拆解為「振幅」與「方向」，使學習軌跡逼近全參數微調</li>
                         </ul>
                     </td>
                     <td style="padding: 16px; color: #334155;">
-                        看懂演算法的優化方向：從極致壓縮硬體門檻（量化）、動態資源分派（結構最佳化）到縮小與全微調的效能差距（架構解耦）。
+                        看懂演算法的優化方向：從極致壓縮硬體門檻（量化）、動態資源分派（結構最佳化）到縮小與全微調的效能差距（架構解耦)
                     </td>
                 </tr>
                 <tr style="border-bottom: 1px solid #cbd5e1; vertical-align: top;">
@@ -300,7 +300,7 @@
                         </ul>
                     </td>
                     <td style="padding: 16px; color: #334155;">
-                        將抽象數學與現在的生成式AI的產業關鍵結合。
+                        將抽象數學與現在的生成式AI的產業關鍵結合
                     </td>
                 </tr>
             </tbody>
