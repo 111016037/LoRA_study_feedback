@@ -160,526 +160,19 @@
         <span><strong>資四甲111016037 陳柏曄</strong></span>
     </div>
 
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
+    <div class="image-placeholder"><img src="1.webp" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
     <h2>一、LoRA演算法簡介</h2>
+    <div class="image-placeholder"><img src="2.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
     <p>隨著大型語言模型(LLM)的快速發展，如何有效微調這些擁有數十億參數的模型，成為目前人工智慧領域的重要課題。然而，全參數微調對計算資源與記憶體的要求極高，這對於一般研究者或硬體設備有限的團隊來說是極大的挑戰。<strong>低階適應(Low-Rank Adaptation,簡稱LoRA)</strong>正是微軟研究團隊為了克服此瓶頸而提出的一種參數高效微調(PEFT)技術。</p>
     <p>LoRA的核心概念非常實用：它在微調過程中完全凍結預訓練模型的原始權重，並在Transformer架構的每一層中，額外注入一組可訓練的低階分解矩陣。這種設計讓需要訓練的參數數量與記憶體消耗大幅降低，使中高階消費級硬體也能參與大型模型的微調，且最終在下游任務表現上的效果，依舊能與全參數微調相當。</p>
 
     <hr>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>二、演算法運作機制</h2>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>1.核心數學原理</h3>
-    <p>在傳統的微調過程中，模型透過更新預訓練權重矩陣<span class="math">W₀</span>(其維度為<span class="math">d×k</span>)來適應新任務，更新後的權重可以表示為<span class="math">W=W₀+ΔW</span>。</p>
-    <p>LoRA的核心假設在於：模型在適應新任務時，權重更新量(<span class="math">ΔW</span>)其實具有較低的「內在階數」(Intrinsic Rank)。這意味著我們不需要直接優化一個高維度的完整矩陣，而是可以透過數學方法將其簡化。因此，LoRA將大矩陣<span class="math">ΔW</span>拆解為兩個低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積：</p>
-
-    <div class="formula-block">
-        <span class="math">ΔW = B · A</span>
-    </div>
-
-    <p>其中各矩陣的定義與特性如下：</p>
-    <ul>
-        <li><span class="math">W₀</span>屬於<span class="math">R^(d×k)</span>，是完全凍結不參與訓練的原始預訓練權重矩陣。</li>
-        <li><span class="math">B</span>屬於<span class="math">R^(d×r)</span>，是其中一個可訓練的低階矩陣。</li>
-        <li><span class="math">A</span>屬於<span class="math">R^(r×k)</span>，是另一個可訓練的低階矩陣。</li>
-        <li>階數<span class="math">r</span>是一個遠小於<span class="math">min(d,k)</span>的超參數，可由使用者根據實際需求調整。</li>
-    </ul>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>2.初始化與前向傳播</h3>
-    <ul>
-        <li><strong>矩陣A</strong>：在訓練開始前，採用高斯分佈進行隨機初始化。</li>
-        <li><strong>矩陣B</strong>：初始化為零。這項設計非常關鍵，因為它確保了在訓練初期的時刻，<span class="math">ΔW=0</span>，此時模型的初始輸出行為會與原始預訓練模型完全一致。</li>
-        <li><strong>縮放因子</strong>：輸出結果會固定乘以一個縮放係數<span class="math">α/r</span>(<span class="math">α</span>為常數超參數)。這個機制有助於在嘗試不同階數<span class="math">r</span>時，維持訓練過程的穩定度。</li>
-    </ul>
-    <p>結合上述架構後，修改後的網路層在進行前向傳播時，其數學表達式如下：</p>
-
-    <div class="formula-block">
-        <span class="math">h = W₀ x + ΔW x = W₀ x + (α / r) B A x</span>
-    </div>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>3.計算與儲存效率分析</h3>
-    <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>。這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
-
-    <hr>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>三、演算法的發展與應用</h2>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>1.技術演進與變體</h3>
-    <p>自從原版LoRA架構推出並獲得成功後，開源社群與研究團隊也陸續開發出許多延伸技術：</p>
-    <ul>
-        <li><strong>QLoRA (Quantized LoRA)</strong>：將LoRA與4bit量化技術相結合，透過NormalFloat4資料格式壓縮基礎模型。這項技術讓開發者能用消費級顯示卡微調大型模型，大幅降低了硬體門檻。</li>
-        <li><strong>AdaLoRA (Adaptive LoRA)</strong>：根據重要性評分動態分配參數預算，並自動調整各層的階數<span class="math">r</span>，使參數利用率達到最大化。</li>
-        <li><strong>DoRA (Weight-Decomposed Low-Rank Adaptation)</strong>：將權重分解為振幅與方向兩個獨立組件，並專注於利用低階矩陣調整方向組件，使整體的學習行為更接近全參數微調。</li>
-    </ul>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>2.實際應用領域</h3>
-    <ul>
-        <li><strong>自然語言處理(NLP)</strong>：廣泛應用於將開源基礎模型(如LLaMA或Mistral)快速適應於醫療問答、法律條文分析或程式碼生成等垂直領域。</li>
-        <li><strong>電腦視覺(CV)</strong>：在Stable Diffusion等文本生成圖像的模型生態系中成為核心。使用者不需重新下載數吉位元組的完整模型，只需下載大小僅數兆位元組的輕量化LoRA檔案，即可引導模型生成特定的角色特徵或特定的藝術風格。</li>
-    </ul>
-
-    <hr>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>四、學習心得與結論</h2>
-    <p>透過這次對LoRA演算法的研究，我深刻體會到線性代數在深度學習優化中所扮演的關鍵角色。LoRA的工程設計非常精妙，它透過低階矩陣近似的數學技巧，將原本成本極高的全參數最佳化問題，轉化為輕量且高效的矩陣運算。這項技術不僅降低了個人研究者參與大型模型應用的硬體門檻，也為未來將AI模型部署於邊緣裝置或進行綠色運算時，提供了清晰且具啟發性的解決方向。</p>
-</div>
-
-</body>
-</html>
-"""
-
-with open("lora_study_report_v3.html", "w", encoding="utf-8") as f:
-    f.write(html_content_v3)
-
-print("V3 HTML file with balanced formal tone generated successfully.")
-
-
-```
-
-```text
-V3 HTML file with balanced formal tone generated successfully.
-
-
-```
-
-您的 HTML 報告檔案（V3版本）已修改完成。
-
-
-為了符合學校課程或 GitHub 專案所需的專業感，我已經將語氣重新修正，**維持正式、理性的學術報告口吻，同時避免了第一版過於機械化的翻譯腔，也剔除了第二版過於輕浮的網路口語（如「大傢伙、賺到、爽」等）**。
-
-其餘格式設定均完美保留並符合您的規範：
-
-1. **中英文單詞、標題與數字連結處完全不留空格**（如 `大型語言模型(LLM)`、`一、LoRA演算法簡介`）。
-2. **最上方保留學號、姓名橫行填寫位**。
-3. **每個段落、大標、小標上方皆留有響應式的圖片放置虛線框**。
-4. **完全無表情符號或特殊形狀字元**。
-
-您可以直接下載產出的 `lora_study_report_v3.html` 檔案，或是複製下方完整的網頁原始碼：
-
-```html
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoRA演算法學習心得報告</title>
-    <style>
-        :root {
-            --bg-color: #f4f6f8;
-            --container-bg: #ffffff;
-            --text-main: #24292f;
-            --text-muted: #57606a;
-            --border-color: #d0d7de;
-            --primary-color: #0969da;
-            --code-bg: #afb8c133;
-            --formula-bg: #f6f8fa;
-            --img-placeholder-bg: #eaeef2;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            margin: 0;
-            padding: 24px;
-            display: block;
-        }
-
-        .container {
-            background-color: var(--container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            font-size: 20pt;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-
-        .info-row {
-            font-size: 11pt;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 8px;
-        }
-
-        .info-row span {
-            margin-right: 24px;
-        }
-
-        h2 {
-            font-size: 15pt;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 6px;
-            margin-top: 32px;
-            margin-bottom: 16px;
-            color: var(--text-main);
-        }
-
-        h3 {
-            font-size: 12pt;
-            margin-top: 24px;
-            margin-bottom: 12px;
-            color: var(--text-main);
-        }
-
-        p, ul, ol {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 10.5pt;
-            text-align: justify;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        strong {
-            color: var(--text-main);
-        }
-
-        .math {
-            font-family: "Times New Roman", Times, serif;
-            font-style: italic;
-            font-weight: bold;
-            color: #1a1a1a;
-        }
-
-        .formula-block {
-            background-color: var(--formula-bg);
-            border-left: 4px solid var(--primary-color);
-            padding: 16px;
-            margin: 20px 0;
-            text-align: center;
-            font-size: 11.5pt;
-            box-sizing: border-box;
-        }
-
-        .image-placeholder {
-            background-color: var(--img-placeholder-bg);
-            border: 2px dashed var(--border-color);
-            border-radius: 6px;
-            width: 100%;
-            height: 200px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 10pt;
-            box-sizing: border-box;
-        }
-
-        hr {
-            height: 4px;
-            padding: 0;
-            margin: 32px 0;
-            background-color: var(--border-color);
-            border: 0;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-            .container {
-                padding: 24px;
-            }
-            h1 {
-                font-size: 18pt;
-            }
-            h2 {
-                font-size: 13.5pt;
-            }
-            h3 {
-                font-size: 11pt;
-            }
-            .image-placeholder {
-                height: 150px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>LoRA(Low-Rank Adaptation)演算法學習心得報告</h1>
     
-    <div class="info-row">
-        <span><strong>班級：</strong>資工系</span>
-        <span><strong>學號：</strong>__________________</span>
-        <span><strong>姓名：</strong>__________________</span>
-    </div>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>一、LoRA演算法簡介</h2>
-    <p>隨著大型語言模型(LLM)的快速發展，如何有效微調這些擁有數十億參數的模型，成為目前人工智慧領域的重要課題。然而，全參數微調對計算資源與記憶體的要求極高，這對於一般研究者或硬體設備有限的團隊來說是極大的挑戰。<strong>低階適應(Low-Rank Adaptation,簡稱LoRA)</strong>正是微軟研究團隊為了克服此瓶頸而提出的一種參數高效微調(PEFT)技術。</p>
-    <p>LoRA的核心概念非常實用：它在微調過程中完全凍結預訓練模型的原始權重，並在Transformer架構的每一層中，額外注入一組可訓練的低階分解矩陣。這種設計讓需要訓練的參數數量與記憶體消耗大幅降低，使中高階消費級硬體也能參與大型模型的微調，且最終在下游任務表現上的效果，依舊能與全參數微調相當。</p>
-
-    <hr>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h2>二、演算法運作機制</h2>
 
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>1.核心數學原理</h3>
-    <p>在傳統的微調過程中，模型透過更新預訓練權重矩陣<span class="math">W₀</span>(其維度為<span class="math">d×k</span>)來適應新任務，更新後的權重可以表示為<span class="math">W=W₀+ΔW</span>。</p>
-    <p>LoRA的核心假設在於：模型在適應新任務時，權重更新量(<span class="math">ΔW</span>)其實具有較低的「內在階數」(Intrinsic Rank)。這意味著我們不需要直接優化一個高維度的完整矩陣，而是可以透過數學方法將其簡化。因此，LoRA將大矩陣<span class="math">ΔW</span>拆解為兩個低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積：</p>
-
-    <div class="formula-block">
-        <span class="math">ΔW = B · A</span>
-    </div>
-
-    <p>其中各矩陣的定義與特性如下：</p>
-    <ul>
-        <li><span class="math">W₀</span>屬於<span class="math">R^(d×k)</span>，是完全凍結不參與訓練的原始預訓練權重矩陣。</li>
-        <li><span class="math">B</span>屬於<span class="math">R^(d×r)</span>，是其中一個可訓練的低階矩陣。</li>
-        <li><span class="math">A</span>屬於<span class="math">R^(r×k)</span>，是另一個可訓練的低階矩陣。</li>
-        <li>階數<span class="math">r</span>是一個遠小於<span class="math">min(d,k)</span>的超參數，可由使用者根據實際需求調整。</li>
-    </ul>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>2.初始化與前向傳播</h3>
-    <ul>
-        <li><strong>矩陣A</strong>：在訓練開始前，採用高斯分佈進行隨機初始化。</li>
-        <li><strong>矩陣B</strong>：初始化為零。這項設計非常關鍵，因為它確保了在訓練初期的時刻，<span class="math">ΔW=0</span>，此時模型的初始輸出行為會與原始預訓練模型完全一致。</li>
-        <li><strong>縮放因子</strong>：輸出結果會固定乘以一個縮放係數<span class="math">α/r</span>(<span class="math">α</span>為常數超參數)。這個機制有助於在嘗試不同階數<span class="math">r</span>時，維持訓練過程的穩定度。</li>
-    </ul>
-    <p>結合上述架構後，修改後的網路層在進行前向傳播時，其數學表達式如下：</p>
-
-    <div class="formula-block">
-        <span class="math">h = W₀ x + ΔW x = W₀ x + (α / r) B A x</span>
-    </div>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>3.計算與儲存效率分析</h3>
-    <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>。這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
-
-    <hr>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>三、演算法的發展與應用</h2>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>1.技術演進與變體</h3>
-    <p>自從原版LoRA架構推出並獲得成功後，開源社群與研究團隊也陸續開發出許多延伸技術：</p>
-    <ul>
-        <li><strong>QLoRA (Quantized LoRA)</strong>：將LoRA與4bit量化技術相結合，透過NormalFloat4資料格式壓縮基礎模型。這項技術讓開發者能用消費級顯示卡微調大型模型，大幅降低了硬體門檻。</li>
-        <li><strong>AdaLoRA (Adaptive LoRA)</strong>：根據重要性評分動態分配參數預算，並自動調整各層的階數<span class="math">r</span>，使參數利用率達到最大化。</li>
-        <li><strong>DoRA (Weight-Decomposed Low-Rank Adaptation)</strong>：將權重分解為振幅與方向兩個獨立組件，並專注於利用低階矩陣調整方向組件，使整體的學習行為更接近全參數微調。</li>
-    </ul>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h3>2.實際應用領域</h3>
-    <ul>
-        <li><strong>自然語言處理(NLP)</strong>：廣泛應用於將開源基礎模型(如LLaMA或Mistral)快速適應於醫療問答、法律條文分析或程式碼生成等垂直領域。</li>
-        <li><strong>電腦視覺(CV)</strong>：在Stable Diffusion等文本生成圖像的模型生態系中成為核心。使用者不需重新下載數吉位元組的完整模型，只需下載大小僅數兆位元組的輕量化LoRA檔案，即可引導模型生成特定的角色特徵或特定的藝術風格。</li>
-    </ul>
-
-    <hr>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>四、學習心得與結論</h2>
-    <p>透過這次對LoRA演算法的研究，我深刻體會到線性代數在深度學習優化中所扮演的關鍵角色。LoRA的工程設計非常精妙，它透過低階矩陣近似的數學技巧，將原本成本極高的全參數最佳化問題，轉化為輕量且高效的矩陣運算。這項技術不僅降低了個人研究者參與大型模型應用的硬體門檻，也為未來將AI模型部署於邊緣裝置或進行綠色運算時，提供了清晰且具啟發性的解決方向。</p>
-</div>
-
-</body>
-</html>
-
-```<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoRA演算法學習心得報告</title>
-    <style>
-        :root {
-            --bg-color: #f4f6f8;
-            --container-bg: #ffffff;
-            --text-main: #24292f;
-            --text-muted: #57606a;
-            --border-color: #d0d7de;
-            --primary-color: #0969da;
-            --code-bg: #afb8c133;
-            --formula-bg: #f6f8fa;
-            --img-placeholder-bg: #eaeef2;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            margin: 0;
-            padding: 24px;
-            display: block;
-        }
-
-        .container {
-            background-color: var(--container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            font-size: 20pt;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-
-        .info-row {
-            font-size: 11pt;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 8px;
-        }
-
-        .info-row span {
-            margin-right: 24px;
-        }
-
-        h2 {
-            font-size: 15pt;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 6px;
-            margin-top: 32px;
-            margin-bottom: 16px;
-            color: var(--text-main);
-        }
-
-        h3 {
-            font-size: 12pt;
-            margin-top: 24px;
-            margin-bottom: 12px;
-            color: var(--text-main);
-        }
-
-        p, ul, ol {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 10.5pt;
-            text-align: justify;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        strong {
-            color: var(--text-main);
-        }
-
-        .math {
-            font-family: "Times New Roman", Times, serif;
-            font-style: italic;
-            font-weight: bold;
-            color: #1a1a1a;
-        }
-
-        .formula-block {
-            background-color: var(--formula-bg);
-            border-left: 4px solid var(--primary-color);
-            padding: 16px;
-            margin: 20px 0;
-            text-align: center;
-            font-size: 11.5pt;
-            box-sizing: border-box;
-        }
-
-        .image-placeholder {
-            background-color: var(--img-placeholder-bg);
-            border: 2px dashed var(--border-color);
-            border-radius: 6px;
-            width: 100%;
-            height: 200px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 10pt;
-            box-sizing: border-box;
-        }
-
-        hr {
-            height: 4px;
-            padding: 0;
-            margin: 32px 0;
-            background-color: var(--border-color);
-            border: 0;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-            .container {
-                padding: 24px;
-            }
-            h1 {
-                font-size: 18pt;
-            }
-            h2 {
-                font-size: 13.5pt;
-            }
-            h3 {
-                font-size: 11pt;
-            }
-            .image-placeholder {
-                height: 150px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>LoRA(Low-Rank Adaptation)演算法學習心得報告</h1>
     
-    <div class="info-row">
-        <span><strong>班級：</strong>資工系</span>
-        <span><strong>學號：</strong>__________________</span>
-        <span><strong>姓名：</strong>__________________</span>
-    </div>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>一、LoRA演算法簡介</h2>
-    <p>隨著大型語言模型(LLM)的快速發展，如何有效微調這些擁有數十億參數的模型，成為目前人工智慧領域的重要課題。然而，全參數微調對計算資源與記憶體的要求極高，這對於一般研究者或硬體設備有限的團隊來說是極大的挑戰。<strong>低階適應(Low-Rank Adaptation,簡稱LoRA)</strong>正是微軟研究團隊為了克服此瓶頸而提出的一種參數高效微調(PEFT)技術。</p>
-    <p>LoRA的核心概念非常實用：它在微調過程中完全凍結預訓練模型的原始權重，並在Transformer架構的每一層中，額外注入一組可訓練的低階分解矩陣。這種設計讓需要訓練的參數數量與記憶體消耗大幅降低，使中高階消費級硬體也能參與大型模型的微調，且最終在下游任務表現上的效果，依舊能與全參數微調相當。</p>
-
-    <hr>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
-    <h2>二、演算法運作機制</h2>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h3>1.核心數學原理</h3>
+    <div class="image-placeholder"><img src="3.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
     <p>在傳統的微調過程中，模型透過更新預訓練權重矩陣<span class="math">W₀</span>(其維度為<span class="math">d×k</span>)來適應新任務，更新後的權重可以表示為<span class="math">W=W₀+ΔW</span>。</p>
     <p>LoRA的核心假設在於：模型在適應新任務時，權重更新量(<span class="math">ΔW</span>)其實具有較低的「內在階數」(Intrinsic Rank)。這意味著我們不需要直接優化一個高維度的完整矩陣，而是可以透過數學方法將其簡化。因此，LoRA將大矩陣<span class="math">ΔW</span>拆解為兩個低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積：</p>
 
@@ -694,8 +187,6 @@ V3 HTML file with balanced formal tone generated successfully.
         <li><span class="math">A</span>屬於<span class="math">R^(r×k)</span>，是另一個可訓練的低階矩陣。</li>
         <li>階數<span class="math">r</span>是一個遠小於<span class="math">min(d,k)</span>的超參數，可由使用者根據實際需求調整。</li>
     </ul>
-
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h3>2.初始化與前向傳播</h3>
     <ul>
         <li><strong>矩陣A</strong>：在訓練開始前，採用高斯分佈進行隨機初始化。</li>
@@ -710,24 +201,25 @@ V3 HTML file with balanced formal tone generated successfully.
 
     <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h3>3.計算與儲存效率分析</h3>
+    <div class="image-placeholder"><img src="4.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
     <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>。這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
 
     <hr>
 
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h2>三、演算法的發展與應用</h2>
 
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
+    <div class="image-placeholder"><img src="5.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
     <h3>1.技術演進與變體</h3>
     <p>自從原版LoRA架構推出並獲得成功後，開源社群與研究團隊也陸續開發出許多延伸技術：</p>
     <ul>
+        
         <li><strong>QLoRA (Quantized LoRA)</strong>：將LoRA與4bit量化技術相結合，透過NormalFloat4資料格式壓縮基礎模型。這項技術讓開發者能用消費級顯示卡微調大型模型，大幅降低了硬體門檻。</li>
         <li><strong>AdaLoRA (Adaptive LoRA)</strong>：根據重要性評分動態分配參數預算，並自動調整各層的階數<span class="math">r</span>，使參數利用率達到最大化。</li>
         <li><strong>DoRA (Weight-Decomposed Low-Rank Adaptation)</strong>：將權重分解為振幅與方向兩個獨立組件，並專注於利用低階矩陣調整方向組件，使整體的學習行為更接近全參數微調。</li>
     </ul>
 
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h3>2.實際應用領域</h3>
+    <div class="image-placeholder"><img src="6.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
     <ul>
         <li><strong>自然語言處理(NLP)</strong>：廣泛應用於將開源基礎模型(如LLaMA或Mistral)快速適應於醫療問答、法律條文分析或程式碼生成等垂直領域。</li>
         <li><strong>電腦視覺(CV)</strong>：在Stable Diffusion等文本生成圖像的模型生態系中成為核心。使用者不需重新下載數吉位元組的完整模型，只需下載大小僅數兆位元組的輕量化LoRA檔案，即可引導模型生成特定的角色特徵或特定的藝術風格。</li>
@@ -735,9 +227,9 @@ V3 HTML file with balanced formal tone generated successfully.
 
     <hr>
 
-    <div class="image-placeholder">圖片放置空間（可隨視窗自動縮放）</div>
     <h2>四、學習心得與結論</h2>
-    <p>透過這次對LoRA演算法的研究，我深刻體會到線性代數在深度學習優化中所扮演的關鍵角色。LoRA的工程設計非常精妙，它透過低階矩陣近似的數學技巧，將原本成本極高的全參數最佳化問題，轉化為輕量且高效的矩陣運算。這項技術不僅降低了個人研究者參與大型模型應用的硬體門檻，也為未來將AI模型部署於邊緣裝置或進行綠色運算時，提供了清晰且具啟發性的解決方向。</p>
+    <p>透過這次對LoRA演算法的研究，我體會到線性代數在深度學習優化中所扮演的關鍵角色，他的工程設計非常精妙，透過低階矩陣近似的數學技巧，將原本成本極高的全參數最佳化問題，轉化為輕量且高效的矩陣運算。</p>
+    <p>這項技術不僅降低了個人研究者參與大型模型應用的硬體門檻，也為未來將AI模型部署於邊緣裝置或進行綠色運算時，提供了清晰且具啟發性的解決方向。</p>
 </div>
 
 </body>
