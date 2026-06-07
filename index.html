@@ -160,9 +160,9 @@
         <span><strong>資四甲111016037 陳柏曄</strong></span>
     </div>
 
-    <div class="image-placeholder"><img src="1.webp" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
+    <div class="image-placeholder"><img src="1.webp" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <h2>一、LoRA演算法簡介</h2>
-    <div class="image-placeholder"><img src="2.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
+    <div class="image-placeholder"><img src="2.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <p>隨著大型語言模型(LLM)的快速發展，如何有效微調這些擁有數十億參數的模型，成為目前人工智慧領域的重要課題。然而，全參數微調對計算資源與記憶體的要求極高，這對於一般研究者或硬體設備有限的團隊來說是極大的挑戰。<strong>低階適應(Low-Rank Adaptation,簡稱LoRA)</strong>正是微軟研究團隊為了克服此瓶頸而提出的一種參數高效微調(PEFT)技術。</p>
     <p>LoRA的核心概念非常實用：它在微調過程中完全凍結預訓練模型的原始權重，並在Transformer架構的每一層中，額外注入一組可訓練的低階分解矩陣。這種設計讓需要訓練的參數數量與記憶體消耗大幅降低，使中高階消費級硬體也能參與大型模型的微調，且最終在下游任務表現上的效果，依舊能與全參數微調相當。</p>
 
@@ -172,7 +172,7 @@
 
     
     <h3>1.核心數學原理</h3>
-    <div class="image-placeholder"><img src="3.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
+    <div class="image-placeholder"><img src="3.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <p>在傳統的微調過程中，模型透過更新預訓練權重矩陣<span class="math">W₀</span>(其維度為<span class="math">d×k</span>)來適應新任務，更新後的權重可以表示為<span class="math">W=W₀+ΔW</span>。</p>
     <p>LoRA的核心假設在於：模型在適應新任務時，權重更新量(<span class="math">ΔW</span>)其實具有較低的「內在階數」(Intrinsic Rank)。這意味著我們不需要直接優化一個高維度的完整矩陣，而是可以透過數學方法將其簡化。因此，LoRA將大矩陣<span class="math">ΔW</span>拆解為兩個低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積：</p>
 
@@ -200,13 +200,13 @@
     </div>
 
     <h3>3.計算與儲存效率分析</h3>
-    <div class="image-placeholder"><img src="4.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
+    <div class="image-placeholder"><img src="4.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <p>在模型微調完成並投入部署時，LoRA可以達到<strong>零推論延遲</strong>。這是因為低階矩陣<span class="math">B</span>與<span class="math">A</span>的乘積可以直接加回原始凍結的權重中：<span class="math">W=W₀+B·A</span>。當面對多工部署或需要切換不同任務時，只需要從當前權重中扣除目前的<span class="math">B·A</span>，並加上另一個任務的LoRA模組即可。這種抽換模組的機制，讓伺服器多任務部署的效率得到極大的提升。</p>
     <hr>
 
     <h2>三、演算法的發展與應用</h2>
 
-    <div class="image-placeholder"><img src="5.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
+    <div class="image-placeholder"><img src="5.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <h3>1.技術演進與變體</h3>
     <p>自從原版LoRA架構推出並獲得成功後，開源社群與研究團隊也陸續開發出許多延伸技術：</p>
     <ul>
@@ -217,7 +217,7 @@
     </ul>
 
     <h3>2.實際應用領域</h3>
-    <div class="image-placeholder"><img src="6.png" style="max-width: 100%; height: auto; margin: 20px 0; display: block;"></div>
+    <div class="image-placeholder"><img src="6.png" style="max-width: 100%; height: 100%; object-fit: contain; display: block;"></div>
     <ul>
         <li><strong>自然語言處理(NLP)</strong>：廣泛應用於將開源基礎模型(如LLaMA或Mistral)快速適應於醫療問答、法律條文分析或程式碼生成等垂直領域。</li>
         <li><strong>電腦視覺(CV)</strong>：在Stable Diffusion等文本生成圖像的模型生態系中成為核心。使用者不需重新下載數吉位元組的完整模型，只需下載大小僅數兆位元組的輕量化LoRA檔案，即可引導模型生成特定的角色特徵或特定的藝術風格。</li>
